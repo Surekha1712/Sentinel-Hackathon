@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+
+<article>
+  <h2><i class="fas fa-folder-tree"></i> Select Repository</h2>
+  <p class="muted" style="margin-bottom: 1.5rem;">
+    Showing up to 50 recently updated repositories you can access.
+  </p>
+
+  {% if not repos %}
+    <div style="text-align: center; padding: 2rem;">
+      <i class="fas fa-folder-open" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5; margin-bottom: 1rem;"></i>
+      <p>Could not load repositories.</p>
+      <p class="muted">Make sure you are connected to GitHub.</p>
+      <a href="/connect" class="btn" style="margin-top: 1rem;">
+        <i class="fas fa-plug"></i> Connect to GitHub
+      </a>
+    </div>
+  {% else %}
+    <form method="post" action="/select-repo">
+      <fieldset>
+        <legend>Available Repositories</legend>
+        <div class="repo-grid">
+          {% for r in repos %}
+            <label class="repo-item">
+              <input 
+                type="radio" 
+                name="repo_full_name" 
+                value="{{ r.full_name }}" 
+                {% if r.full_name == selected %}checked{% endif %}
+                required 
+              />
+              <span class="repo-name">{{ r.full_name }}</span>
+              <span class="repo-visibility {{ 'private' if r.private else 'public' }}">
+                <i class="fas fa-{{ 'lock' if r.private else 'globe' }}"></i>
+                {{ 'private' if r.private else 'public' }}
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      
+      <div style="margin-top: 1.5rem;">
+        <button type="submit">
+          <i class="fas fa-save"></i> Save Selection
+        </button>
+        <a href="/dashboard" class="btn btn-secondary" style="margin-left: 0.5rem;">
+          <i class="fas fa-times"></i> Cancel
+        </a>
+      </div>
+    </form>
+  {% endif %}
+</article>
+
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block content %}
+
+<article>
+  <h2><i class="fas fa-list-check"></i> Reviews</h2>
+  
+  {% if not repo_full_name %}
+    <div style="text-align: center; padding: 2rem;">
+      <i class="fas fa-folder-open" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5; margin-bottom: 1rem;"></i>
+      <p>Select a repository first to view reviews.</p>
+      <a href="/select-repo" class="btn">
+        <i class="fas fa-folder"></i> Select Repository
+      </a>
+    </div>
+  {% else %}
+    <p class="muted" style="margin-bottom: 1.5rem;">
+      <i class="fas fa-code-branch"></i> Repository: <code>{{ repo_full_name }}</code>
+    </p>
+    
+    {% if not reviews %}
+      <div style="text-align: center; padding: 3rem; background: var(--light); border-radius: var(--radius);">
+        <i class="fas fa-clipboard-check" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5; margin-bottom: 1rem;"></i>
+        <p>No reviews yet.</p>
+        <p class="muted">Trigger a review from the dashboard to get started.</p>
+        <a href="/dashboard" class="btn" style="margin-top: 1rem;">
+          <i class="fas fa-gauge-high"></i> Go to Dashboard
+        </a>
+      </div>
+    {% else %}
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th><i class="fas fa-hashtag"></i> PR</th>
+              <th><i class="fas fa-clock"></i> When</th>
+              <th><i class="fas fa-bug"></i> Findings</th>
+              <th><i class="fas fa-shield-alt"></i> Risk</th>
+              <th><i class="fas fa-lock"></i> Security</th>
+              <th><i class="fas fa-brain"></i> LLM</th>
+              <th><i class="fas fa-cog"></i> Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in reviews %}
+              <tr>
+                <td>
+                  <a href="/reviews/{{ r.pr_number }}" style="font-weight: 600; color: var(--primary);">
+                    #{{ r.pr_number }}
+                  </a>
+                </td>
+                <td class="muted">{{ r.created_at_human }}</td>
+                <td>
+                  {% if r.findings_total > 0 %}
+                    <span style="background: #dbeafe; color: #1e40af; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 500;">
+                      {{ r.findings_total }}
+                    </span>
+                  {% else %}
+                    <span class="muted">0</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if r.risk_level %}
+                    {% if r.risk_level == 'critical' %}
+                      <span style="background: #fee2e2; color: #dc2626; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600;">
+                        <i class="fas fa-exclamation-triangle"></i> {{ r.risk_level|upper }}
+                      </span>
+                    {% elif r.risk_level == 'high' %}
+                      <span style="background: #fed7aa; color: #c2410c; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600;">
+                        {{ r.risk_level|upper }}
+                      </span>
+                    {% elif r.risk_level == 'medium' %}
+                      <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600;">
+                        {{ r.risk_level|upper }}
+                      </span>
+                    {% else %}
+                      <span style="background: #d1fae5; color: #065f46; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600;">
+                        {{ r.risk_level|upper }}
+                      </span>
+                    {% endif %}
+                  {% else %}
+                    <span class="muted">N/A</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if r.security_score %}
+                    {% if r.security_score >= 80 %}
+                      <span style="color: #10b981; font-weight: 600;">{{ r.security_score }}</span>
+                    {% elif r.security_score >= 60 %}
+                      <span style="color: #3b82f6; font-weight: 600;">{{ r.security_score }}</span>
+                    {% elif r.security_score >= 40 %}
+                      <span style="color: #f59e0b; font-weight: 600;">{{ r.security_score }}</span>
+                    {% else %}
+                      <span style="color: #ef4444; font-weight: 600;">{{ r.security_score }}</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="muted">N/A</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if r.llm_parse_ok %}
+                    <span style="color: #10b981;"><i class="fas fa-check-circle"></i> Yes</span>
+                  {% else %}
+                    <span style="color: #ef4444;"><i class="fas fa-times-circle"></i> No</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="/reviews/{{ r.pr_number }}" class="btn" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;">
+                    <i class="fas fa-eye"></i> View
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  {% endif %}
+</article>
+
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+  <div>
+    <h2 style="margin-bottom: 0.5rem;">
+      <i class="fas fa-magnifying-glass-chart"></i> Review for PR #{{ pr_number }}
+    </h2>
+    <p class="muted" style="margin: 0;">
+      <i class="fas fa-folder"></i> Repository: <code>{{ repo_full_name }}</code>
+    </p>
+  </div>
+  <a href="/reviews" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i> Back to Reviews
+  </a>
+</div>
+
+{% if not record %}
+  <article>
+    <div style="text-align: center; padding: 2rem;">
+      <i class="fas fa-clipboard-list" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5; margin-bottom: 1rem;"></i>
+      <p>No stored review found for this PR yet.</p>
+      <p class="muted">Trigger a new review from the dashboard.</p>
+      <a href="/dashboard" class="btn" style="margin-top: 1rem;">
+        <i class="fas fa-gauge-high"></i> Go to Dashboard
+      </a>
+    </div>
+  </article>
+{% else %}
+  <div class="stats-grid" style="margin-bottom: 1.5rem;">
+    <div class="stat-card">
+      <div class="number" style="color: #ef4444;">{{ findings_total }}</div>
+      <div class="label"><i class="fas fa-bug"></i> Total Findings</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" style="color: #3b82f6;">{{ static_count }}</div>
+      <div class="label"><i class="fas fa-search"></i> Static Analysis</div>
+    </div>
+    <div class="stat-card">
+      <div class="number">
+        {% if llm_parse_ok %}
+          <i class="fas fa-check-circle" style="color: #10b981;"></i>
+        {% else %}
+          <i class="fas fa-times-circle" style="color: #ef4444;"></i>
+        {% endif %}
+      </div>
+      <div class="label"><i class="fas fa-brain"></i> LLM Parsed</div>
+    </div>
+    {% if head_sha %}
+      <div class="stat-card">
+        <div class="number" style="font-size: 0.875rem; word-break: break-all;">{{ head_sha[:8] }}...</div>
+        <div class="label"><i class="fas fa-hash"></i> Commit SHA</div>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if scores %}
+  <article style="margin-bottom: 1.5rem; border-left: 4px solid 
+    {% if scores.risk_level|lower == 'critical' %}#ef4444
+    {% elif scores.risk_level|lower == 'high' %}#f97316
+    {% elif scores.risk_level|lower == 'medium' %}#f59e0b
+    {% else %}#10b981{% endif %};">
+    <h3><i class="fas fa-shield-alt"></i> Risk Assessment</h3>
+    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+      <div class="stat-card">
+        <div class="number" style="font-size: 1.5rem;
+          {% if scores.risk_level|lower == 'critical' %}color: #ef4444;
+          {% elif scores.risk_level|lower == 'high' %}color: #f97316;
+          {% elif scores.risk_level|lower == 'medium' %}color: #f59e0b;
+          {% else %}color: #10b981;{% endif %}">
+          {{ scores.risk_level|upper }}
+        </div>
+        <div class="label">Risk Level</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">{{ scores.security_score }}/100</div>
+        <div class="label">Security Score</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">{{ scores.complexity_score }}/100</div>
+        <div class="label">Complexity</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">{{ scores.maintainability_score }}/100</div>
+        <div class="label">Maintainability</div>
+      </div>
+    </div>
+  </article>
+  {% endif %}
+
+  <article>
+    <h3><i class="fas fa-list-ul"></i> Findings</h3>
+    
+    {% if not findings %}
+      <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+        <i class="fas fa-check-circle" style="font-size: 2.5rem; color: #10b981; opacity: 0.7; margin-bottom: 1rem;"></i>
+        <p>No issues found! This PR looks good.</p>
+      </div>
+    {% else %}
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for f in findings %}
+          <div class="finding-item" style="
+            background: white; 
+            border-left: 4px solid 
+            {% if f.severity|lower == 'critical' %}#ef4444
+            {% elif f.severity|lower == 'high' %}#f97316
+            {% elif f.severity|lower == 'medium' %}#f59e0b
+            {% else %}#3b82f6{% endif %};
+          ">
+            <div class="finding-header">
+              <span class="finding-category">
+                <span style="
+                  background: 
+                  {% if f.severity|lower == 'critical' %}#fef2f2
+                  {% elif f.severity|lower == 'high' %}#fff7ed
+                  {% elif f.severity|lower == 'medium' %}#fffbeb
+                  {% else %}#eff6ff{% endif %};
+                  color: 
+                  {% if f.severity|lower == 'critical' %}#dc2626
+                  {% elif f.severity|lower == 'high' %}#ea580c
+                  {% elif f.severity|lower == 'medium' %}#d97706
+                  {% else %}#2563eb{% endif %};
+                  padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                  {{ f.severity|upper }}
+                </span>
+                <i class="fas 
+                  {% if f.id == 'secrets' %}fa-key
+                  {% elif f.id == 'suspicious' %}fa-eye
+                  {% elif f.id == 'todo' %}fa-tasks
+                  {% elif f.id == 'print' %}fa-print
+                  {% else %}fa-bug{% endif %}"
+                ></i>
+                {{ f.title }}
+              </span>
+              <span class="muted" style="font-size: 0.75rem;">
+                <i class="fas fa-code"></i> {{ f.source }}
+              </span>
+            </div>
+            <div class="finding-description">
+              {{ f.details }}
+            </div>
+            {% if f.suggestion %}
+              <div style="margin-top: 0.75rem; padding: 0.75rem; background: #f0fdf4; border-radius: 6px; border-left: 3px solid #22c55e;">
+                <strong style="color: #166534;"><i class="fas fa-lightbulb"></i> Suggestion:</strong>
+                <span style="color: #15803d;">{{ f.suggestion }}</span>
+              </div>
+            {% endif %}
+            {% if f.style_rule %}
+              <div style="margin-top: 0.5rem; font-size: 0.875rem;">
+                <span class="muted"><i class="fas fa-graduation-cap"></i> Style rule:</span>
+                <code>{{ f.style_rule }}</code>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </article>
+
+  {% if llm_raw %}
+    <article style="border-left: 4px solid #f59e0b;">
+      <h3><i class="fas fa-exclamation-triangle"></i> LLM Raw Output (Parse Failed)</h3>
+      <pre style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;">{{ llm_raw }}</pre>
+    </article>
+  {% endif %}
+{% endif %}
+
+{% endblock %}

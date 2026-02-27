@@ -1,0 +1,152 @@
+﻿{% extends "base.html" %}
+{% block content %}
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="number">
+      {% if connected %}
+        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+      {% else %}
+        <i class="fas fa-times-circle" style="color: #ef4444;"></i>
+      {% endif %}
+    </div>
+    <div class="label">GitHub Status</div>
+  </div>
+  <div class="stat-card">
+    <div class="number">{{ repo_full_name or "â€”" }}</div>
+    <div class="label">Repository</div>
+  </div>
+  <div class="stat-card">
+    <div class="number">{{ base_branch or "â€”" }}</div>
+    <div class="label">Base Branch</div>
+  </div>
+  <div class="stat-card">
+    <div class="number" style="font-size: 1.25rem;">{{ llm_model }}</div>
+    <div class="label">LLM Model</div>
+  </div>
+</div>
+
+<article>
+  <h2><i class="fas fa-cog"></i> Configuration</h2>
+  
+  <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+    <div style="flex: 1; min-width: 200px;">
+      <p style="margin-bottom: 0.5rem;">
+        <strong><i class="fab fa-github"></i> GitHub:</strong>
+        {% if connected %}
+          <span class="pill pill-connected">
+            <i class="fas fa-check"></i> Connected
+          </span>
+        {% else %}
+          <span class="pill pill-disconnected">
+            <i class="fas fa-times"></i> Not Connected
+          </span>
+        {% endif %}
+      </p>
+      <p style="margin-bottom: 0.5rem;">
+        <strong><i class="fas fa-code-branch"></i> Repository:</strong>
+        {% if repo_full_name %}
+          <code>{{ repo_full_name }}</code>
+        {% else %}
+          <span class="muted">Not selected</span>
+        {% endif %}
+      </p>
+      <p style="margin-bottom: 0;">
+        <strong><i class="fas fa-code"></i> Base Branch:</strong>
+        {% if base_branch %}
+          <code>{{ base_branch }}</code>
+        {% else %}
+          <span class="muted">Not selected</span>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div class="action-links">
+    <a href="/connect">
+      <i class="fas fa-plug"></i> {% if connected %}Re-connect{% else %}Connect{% endif %}
+    </a>
+    {% if connected %}
+      <a href="/select-repo">
+        <i class="fas fa-folder"></i> {% if repo_full_name %}Change Repo{% else %}Select Repo{% endif %}
+      </a>
+    {% endif %}
+    {% if connected and repo_full_name %}
+      <a href="/select-branch">
+        <i class="fas fa-code-branch"></i> {% if base_branch %}Change Branch{% else %}Select Branch{% endif %}
+      </a>
+    {% endif %}
+  </div>
+</article>
+
+<article>
+  <h2><i class="fas fa-magnifying-glass"></i> Trigger a PR Review</h2>
+  
+  {% if not ready %}
+    <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+      <p style="margin: 0; color: #92400e;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Setup Required:</strong> Please connect to GitHub, select a repository, and choose a base branch to enable PR reviews.
+      </p>
+    </div>
+  {% endif %}
+
+  <form method="post" action="/review" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+    <div style="flex: 1; min-width: 200px;">
+      <label for="pr_number">
+        <i class="fas fa-hashtag"></i> PR Number
+      </label>
+      <input 
+        type="number" 
+        name="pr_number" 
+        id="pr_number"
+        min="1" 
+        placeholder="e.g., 123" 
+        required 
+        {% if not ready %}disabled{% endif}
+        style="width: 100%;"
+      />
+    </div>
+    <button type="submit" {% if not ready %}disabled{% endif %}>
+      <i class="fas fa-play"></i> Review Now
+    </button>
+  </form>
+
+  {% if ready %}
+    <p class="muted" style="margin-top: 1rem;">
+      <i class="fas fa-info-circle"></i>
+      The review will analyze the PR diff and post findings as a comment on the PR.
+    </p>
+  {% endif %}
+</article>
+
+<article>
+  <h2><i class="fas fa-graduation-cap"></i> Learned Team Style</h2>
+  
+  {% if style_rules %}
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      {% for r in style_rules %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--light); border-radius: 8px;">
+          <code style="flex: 1;">{{ r.rule }}</code>
+          <div style="display: flex; gap: 1rem; font-size: 0.875rem;">
+            <span style="color: #10b981;">
+              <i class="fas fa-check"></i> {{ r.accepted_count }} accepted
+            </span>
+            <span style="color: #ef4444;">
+              <i class="fas fa-times"></i> {{ r.rejected_count }} rejected
+            </span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+      <i class="fas fa-book-open" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+      <p>No style rules learned yet.</p>
+      <p class="muted">Check findings in GitHub and sync feedback (or just keep reviewing).</p>
+    </div>
+  {% endif %}
+</article>
+
+{% endblock %}
+

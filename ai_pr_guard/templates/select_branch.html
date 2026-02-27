@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+
+<article>
+  <h2><i class="fas fa-code-branch"></i> Select Base Branch</h2>
+  <p class="muted" style="margin-bottom: 1.5rem;">
+    Repository: <code>{{ repo_full_name }}</code>
+  </p>
+
+  {% if not branches %}
+    <div style="text-align: center; padding: 2rem;">
+      <i class="fas fa-code-branch" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5; margin-bottom: 1rem;"></i>
+      <p>No branches found.</p>
+      <p class="muted">Make sure you have selected a repository.</p>
+      <a href="/select-repo" class="btn" style="margin-top: 1rem;">
+        <i class="fas fa-folder"></i> Select Repository
+      </a>
+    </div>
+  {% else %}
+    <form method="post" action="/select-branch">
+      <fieldset>
+        <legend>Available Branches</legend>
+        <div class="repo-grid">
+          {% for b in branches %}
+            <label class="repo-item">
+              <input 
+                type="radio" 
+                name="base_branch" 
+                value="{{ b.name }}" 
+                {% if b.name == selected %}checked{% endif %}
+                required 
+              />
+              <span class="repo-name">
+                <i class="fas fa-code-branch"></i> {{ b.name }}
+              </span>
+              {% if b.name == selected %}
+                <span class="pill pill-ready">
+                  <i class="fas fa-check"></i> Selected
+                </span>
+              {% endif %}
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      
+      <div style="margin-top: 1.5rem;">
+        <button type="submit">
+          <i class="fas fa-save"></i> Save Selection
+        </button>
+        <a href="/dashboard" class="btn btn-secondary" style="margin-left: 0.5rem;">
+          <i class="fas fa-times"></i> Cancel
+        </a>
+      </div>
+    </form>
+  {% endif %}
+</article>
+
+{% endblock %}

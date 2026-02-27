@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Hero Stats Section -->
+<section style="margin-bottom: 2rem;">
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white;">
+      <div class="number" style="color: white;">{{ metrics.get('reviews_completed', 0) if metrics else 0 }}</div>
+      <div class="label" style="color: rgba(255,255,255,0.8);">PRs Reviewed</div>
+      <div style="margin-top: 0.5rem; font-size: 0.75rem; opacity: 0.8;"><i class="fas fa-arrow-up"></i> This month</div>
+    </div>
+    <div class="stat-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;">
+      <div class="number" style="color: white;">{{ metrics.get('security_issues_found', 0) if metrics else 0 }}</div>
+      <div class="label" style="color: rgba(255,255,255,0.8);">Security Issues</div>
+      <div style="margin-top: 0.5rem; font-size: 0.75rem; opacity: 0.8;"><i class="fas fa-shield-virus"></i> Security threats</div>
+    </div>
+    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+      <div class="number" style="color: white;">{{ metrics.get('lines_reviewed', 0) if metrics else 0 }}</div>
+      <div class="label" style="color: rgba(255,255,255,0.8);">Lines Reviewed</div>
+      <div style="margin-top: 0.5rem; font-size: 0.75rem; opacity: 0.8;"><i class="fas fa-code"></i> Auto-scanned</div>
+    </div>
+    <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+      <div class="number" style="color: white;">{{ metrics.get('estimated_time_saved_minutes', 0) if metrics else 0 }}</div>
+      <div class="label" style="color: rgba(255,255,255,0.8);">Time Saved (min)</div>
+      <div style="margin-top: 0.5rem; font-size: 0.75rem; opacity: 0.8;"><i class="fas fa-clock"></i> Automation power</div>
+    </div>
+  </div>
+</section>
+
+<!-- Configuration & Quick Actions Row -->
+<section style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+  <!-- Connection Status -->
+  <article style="margin: 0;">
+    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+      <i class="fas fa-plug" style="color: var(--primary);"></i> Connection Status
+    </h3>
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--light); border-radius: 8px;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: {% if connected %}#d1fae5{% else %}#fee2e2{% endif %}; display: flex; align-items: center; justify-content: center;">
+            <i class="fab fa-github" style="color: {% if connected %}#065f46{% else %}#991b1b{% endif %}; font-size: 1.25rem;"></i>
+          </div>
+          <div>
+            <div style="font-weight: 600;">GitHub</div>
+            <div class="muted" style="font-size: 0.8rem;">{% if connected %}Connected{% else %}Not connected{% endif %}</div>
+          </div>
+        </div>
+        <span class="pill {% if connected %}pill-connected{% else %}pill-disconnected{% endif %}">
+          <i class="fas {% if connected %}fa-check{% else %}fa-times{% endif %}"></i> {% if connected %}Active{% else %}Inactive{% endif %}
+        </span>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--light); border-radius: 8px;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: #e0e7ff; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-folder" style="color: #4f46e5; font-size: 1.25rem;"></i>
+          </div>
+          <div>
+            <div style="font-weight: 600;">Repository</div>
+            <div class="muted" style="font-size: 0.8rem;">{{ repo_full_name or "Not selected" }}</div>
+          </div>
+        </div>
+        <a href="/select-repo" style="color: var(--primary); text-decoration: none; font-size: 0.875rem;">
+          {% if repo_full_name %}<i class="fas fa-pen"></i> Change{% else %}<i class="fas fa-plus"></i> Select{% endif %}
+        </a>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--light); border-radius: 8px;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: #fef3c7; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-code-branch" style="color: #92400e; font-size: 1.25rem;"></i>
+          </div>
+          <div>
+            <div style="font-weight: 600;">Base Branch</div>
+            <div class="muted" style="font-size: 0.8rem;">{{ base_branch or "Not selected" }}</div>
+          </div>
+        </div>
+        <a href="/select-branch" style="color: var(--primary); text-decoration: none; font-size: 0.875rem;">
+          {% if base_branch %}<i class="fas fa-pen"></i> Change{% else %}<i class="fas fa-plus"></i> Select{% endif %}
+        </a>
+      </div>
+    </div>
+  </article>
+  
+  <!-- Quick Review -->
+  <article style="margin: 0;">
+    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+      <i class="fas fa-magnifying-glass" style="color: var(--primary);"></i> Quick Review
+    </h3>
+    
+    <!-- Input field - ALWAYS VISIBLE with fixed text color -->
+    <div style="background: #f0f9ff; border: 3px solid #0ea5e9; border-radius: 12px; padding: 1.5rem; text-align: center;">
+      <form method="post" action="/review">
+        <input 
+          type="number" 
+          name="pr_number" 
+          placeholder="Type PR number here..." 
+          required 
+          min="1"
+          style="width: 80%; padding: 1rem; font-size: 1.5rem; border: 2px solid #ccc; border-radius: 8px; text-align: center; background: white; color: #1f2937;"
+        />
+        <button type="submit" style="margin-top: 1rem; padding: 1rem 2rem; font-size: 1.1rem; background: #0ea5e9; color: white; border: none; border-radius: 8px; cursor: pointer;">
+          <i class="fas fa-play"></i> Review PR
+        </button>
+      </form>
+      <p style="margin-top: 1rem; color: #666;">
+        {% if ready %}
+          Enter a PR number and click Review
+        {% else %}
+          Setup needed: Connect GitHub, select repo & branch first
+        {% endif %}
+      </p>
+    </div>
+    
+    {% if not ready %}
+    <div style="margin-top: 1rem; padding: 0.75rem; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
+      <p style="margin: 0; font-size: 0.875rem; color: #92400e;">
+        <i class="fas fa-exclamation-triangle"></i> <strong>Complete Setup:</strong>
+      </p>
+      <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        {% if not connected %}
+          <a href="/connect" style="padding: 0.5rem 1rem; background: #6366f1; color: white; border-radius: 6px; text-decoration: none; font-size: 0.875rem;">
+            <i class="fab fa-github"></i> Connect
+          </a>
+        {% endif %}
+        {% if connected and not repo_full_name %}
+          <a href="/select-repo" style="padding: 0.5rem 1rem; background: #6366f1; color: white; border-radius: 6px; text-decoration: none; font-size: 0.875rem;">
+            <i class="fas fa-folder"></i> Select Repo
+          </a>
+        {% endif %}
+        {% if connected and repo_full_name and not base_branch %}
+          <a href="/select-branch" style="padding: 0.5rem 1rem; background: #6366f1; color: white; border-radius: 6px; text-decoration: none; font-size: 0.875rem;">
+            <i class="fas fa-code-branch"></i> Select Branch
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </article>
+</section>
+
+<!-- Charts Section -->
+<section style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+  <article style="margin: 0;">
+    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+      <i class="fas fa-chart-bar" style="color: var(--primary);"></i> Security Overview
+    </h3>
+    {% if metrics and metrics.get('reviews_completed', 0) > 0 %}
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+        <div style="text-align: center; padding: 1rem; background: #fef3c7; border-radius: 8px;">
+          <div style="font-size: 1.5rem; font-weight: 700; color: #92400e;">{{ metrics.get('critical_count', 0) }}</div>
+          <div style="font-size: 0.75rem; color: #92400e;">Critical</div>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: #fed7aa; border-radius: 8px;">
+          <div style="font-size: 1.5rem; font-weight: 700; color: #c2410c;">{{ metrics.get('high_count', 0) }}</div>
+          <div style="font-size: 0.75rem; color: #c2410c;">High</div>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: #dbeafe; border-radius: 8px;">
+          <div style="font-size: 1.5rem; font-weight: 700; color: #1e40af;">{{ metrics.get('medium_count', 0) }}</div>
+          <div style="font-size: 0.75rem; color: #1e40af;">Medium</div>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: #d1fae5; border-radius: 8px;">
+          <div style="font-size: 1.5rem; font-weight: 700; color: #065f46;">{{ metrics.get('low_count', 0) }}</div>
+          <div style="font-size: 0.75rem; color: #065f46;">Low</div>
+        </div>
+      </div>
+      <div style="margin-top: 1rem; text-align: center;">
+        <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">{{ metrics.get('avg_security_score', 0) }}</div>
+        <div class="muted">Average Security Score</div>
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 2rem;">
+        <div style="width: 80px; height: 80px; margin: 0 auto 1rem; background: var(--light); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-shield-alt" style="font-size: 2rem; color: var(--text-muted);"></i>
+        </div>
+        <p style="font-weight: 600; margin: 0;">No Security Data Yet</p>
+        <p class="muted" style="font-size: 0.875rem;">Run your first PR review to see security insights</p>
+      </div>
+    {% endif %}
+  </article>
+  
+  <article style="margin: 0;">
+    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+      <i class="fas fa-chart-pie" style="color: var(--primary);"></i> Risk Distribution
+    </h3>
+    {% if metrics and metrics.get('reviews_completed', 0) > 0 %}
+      {# Calculate percentages from real data #}
+      {% set total = metrics.get('critical_count', 0) + metrics.get('high_count', 0) + metrics.get('medium_count', 0) + metrics.get('low_count', 0) %}
+      {% if total > 0 %}
+        {% set critical_pct = (metrics.get('critical_count', 0) * 100 / total)|round|int %}
+        {% set high_pct = (metrics.get('high_count', 0) * 100 / total)|round|int %}
+        {% set medium_pct = (metrics.get('medium_count', 0) * 100 / total)|round|int %}
+        {% set low_pct = (metrics.get('low_count', 0) * 100 / total)|round|int %}
+      {% else %}
+        {% set critical_pct = 0 %}{% set high_pct = 0 %}{% set medium_pct = 0 %}{% set low_pct = 100 %}
+      {% endif %}
+      
+      <!-- Dynamic CSS Pie Chart from Database -->
+      <div style="display: flex; align-items: center; gap: 2rem;">
+        <div style="width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(#ef4444 0% {{ critical_pct }}%, #f59e0b {{ critical_pct }}% {{ critical_pct + high_pct }}%, #3b82f6 {{ critical_pct + high_pct }}% {{ critical_pct + high_pct + medium_pct }}%, #10b981 {{ critical_pct + high_pct + medium_pct }}% 100%); position: relative;">
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; background: white; border-radius: 50%;"></div>
+        </div>
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div style="width: 12px; height: 12px; background: #ef4444; border-radius: 2px;"></div>
+            <span>Critical ({{ critical_pct }}%)</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div style="width: 12px; height: 12px; background: #f59e0b; border-radius: 2px;"></div>
+            <span>High ({{ high_pct }}%)</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></div>
+            <span>Medium ({{ medium_pct }}%)</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 12px; height: 12px; background: #10b981; border-radius: 2px;"></div>
+            <span>Low ({{ low_pct }}%)</span>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 2rem;">
+        <div style="width: 80px; height: 80px; margin: 0 auto 1rem; background: var(--light); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-chart-pie" style="font-size: 2rem; color: var(--text-muted);"></i>
+        </div>
+        <p style="font-weight: 600; margin: 0;">No Data Available</p>
+        <p class="muted" style="font-size: 0.875rem;">Risk distribution will appear after reviews</p>
+      </div>
+    {% endif %}
+  </article>
+</section>
+
+<!-- Activity & Style Rules Row -->
+<section style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+  <!-- Recent Activity - Now showing recent PR reviews -->
+  <article style="margin: 0;">
+    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+      <i class="fas fa-clock-rotate-left" style="color: var(--primary);"></i> Recent Activity
+    </h3>
+    {% if recent_reviews %}
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for r in recent_reviews[:5] %}
+          <a href="/reviews/{{ r.pr_number }}" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--light); border-radius: 8px; text-decoration: none; color: inherit;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; background: #e0e7ff; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-code-pull-request" style="color: #4f46e5;"></i>
+              </div>
+              <div>
+                <div style="font-weight: 600;">PR #{{ r.pr_number }}</div>
+                <div class="muted" style="font-size: 0.75rem;">{{ r.created_at_human }}</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.875rem;">{{ r.findings_total }} findings</span>
+              <i class="fas fa-chevron-right" style="color: var(--text-muted); font-size: 0.75rem;"></i>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+      <div style="margin-top: 1rem; text-align: center;">
+        <a href="/reviews" style="color: var(--primary); text-decoration: none; font-size: 0.875rem;">
+          <i class="fas fa-list"></i> View All Reviews
+        </a>
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 2rem;">
+        <div style="width: 60px; height: 60px; margin: 0 auto 1rem; background: var(--light); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-clock-rotate-left" style="font-size: 1.5rem; color: var(--text-muted);"></i>
+        </div>
+        <p style="font-weight: 600; margin: 0;">No Recent Activity</p>
+        <p class="muted" style="font-size: 0.875rem;">Run your first PR review to see activity</p>
+      </div>
+    {% endif %}
+  </article>
+  
+  <!-- Quick Stats / Model Info -->
+  <article style="margin: 0;">
+    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+      <i class="fas fa-robot" style="color: var(--primary);"></i> AI Configuration
+    </h3>
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--light); border-radius: 8px;">
+        <span class="muted">Provider</span>
+        <span style="font-weight: 600;">{{ llm_provider or "OpenAI" }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--light); border-radius: 8px;">
+        <span class="muted">Model</span>
+        <span style="font-weight: 600;">{{ llm_model or "gpt-4.1-mini" }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--light); border-radius: 8px;">
+        <span class="muted">Security Mode</span>
+        <span style="font-weight: 600; color: var(--secondary);"><i class="fas fa-shield-check"></i> Enhanced</span>
+      </div>
+    </div>
+  </article>
+</section>
+
+{% endblock %}
