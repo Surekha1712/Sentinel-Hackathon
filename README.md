@@ -22,8 +22,9 @@ AI-powered PR security review tool that automates code analysis, detects vulnera
 
 ### Quick Setup
 ```bash
-git clone https://github.com/your-username/ai-pr-guard.git
-cd ai-pr-guard
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
 pip install -r requirements.txt
 ```
 
